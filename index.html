@@ -28,14 +28,15 @@
         top: 0;
         right: 0;
         width: 300px;
-        height: 100%;
+        height: 50%;
         background-color: rgba(0,0,0,0.8);
         color: white;
         padding: 20px;
-        display: none;
+        display: block;
         overflow-y: auto;
         z-index: 100;
       }
+
       #menu h2 {
         margin-top: 0;
         border-bottom: 1px solid white;
@@ -71,6 +72,37 @@
         cursor: pointer;
         box-shadow: 0 4px 6px rgba(0,0,0,0.3);
       }
+
+      #store {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 300px;
+        height: 30%;
+        background-color: rgba(0,0,0,0.8);
+        color: white;
+        padding: 20px;
+        display: none;
+        overflow-y: auto;
+        z-index: 100;
+      }
+
+      #store-btn {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        width: 80px;
+        height: 80px;
+        background-color: linear-gradient(135deg, #023139, #8dc6f8);
+        color: white;
+        border: none;
+        font-weight: bold;
+        border-radius: 50%;
+        z-index: 200;
+        cursor: pointer;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      }
+
       .interaction-btn {
         position: absolute;
         bottom: 50px;
@@ -187,6 +219,13 @@
             <img src="Assets/Icons/quest.png" class="icon-img" />
         </button>
     </div>
+
+    <div>
+        <button id = "store-btn">
+            <img src="Assets/Icons/store.png" class="icon-img" />
+        </button>
+    </div>
+
     <div id = "menu">
         <h2>Quests</h2>
         <div id="quest1">
@@ -212,6 +251,24 @@
         <div id="quest6">
             Earn 10000 coins (<span id="quest6Progress">0</span>/10000)
             <button id="quest6Btn" disabled>Completed</button>
+        </div>
+        <div id="quest7">
+            Unlock the pirate ship (<span id="quest7Progress">0</span>/1)
+            <button id="quest7Btn" disabled>Completed</button>
+        </div>
+    </div>
+
+    <div id = "store">
+        <div><h2>Unlock new look!</h2></div>
+        <div class = "store-list">
+            <div id = "store-ship" style = "margin:20px;">
+                PIRATE SHIP ~ 8000 coins
+                <button id="unlockShip" style="margin-left:0px;">UNLOCK</button>
+            </div>
+            <div id = "store-chair" style = "margin:20px;">
+                BEACH CHAIR ~ 2000 coins
+                <button id="unlockChair" style="margin-left:0px;">UNLOCK</button>
+            </div>
         </div>
     </div>
 
@@ -252,25 +309,21 @@
       let treasureCollected = 0;
       let tsellCount = 0;
       let ssellCount = 0;
+      let isShipUnlocked = 0;
       let treasureUI = document.getElementById("treasureCount");
       let seashellUI = document.getElementById("seashellCount");
       let coinUI = document.getElementById("coinCount");
+      let wavesound;
 
       function initAudio() {
-        try {
-          // Create and configure the sound
-          const sound = new BABYLON.Sound(
-            "sound",
-            "./Sounds/wave.wav", // Replace with your audio file path
-            null,
-            {
-              loop: true,
-              autoplay: true
-            }
-          );
-        } catch (error) {
-          console.error("Audio initialization failed:", error);
-        }
+        wavesound = new BABYLON.Sound(
+        "wave",
+        "Sounds/wave.mp3", 
+        scene,
+        null,
+        { loop: true, autoplay: true }
+        );
+        wavesound.setVolume(0.8);
       }
 
       const createScene = function () {
@@ -377,35 +430,26 @@
             const beachChair = result.meshes[0];
             beachChair.scaling = new BABYLON.Vector3(2, 2, 2);
             beachChair.rotation = new BABYLON.Vector3(0, 90, 0);
-            beachChair.setEnabled(false); // template
+            beachChair.setEnabled(false); // ✅ 已隐藏
 
             for (let i = 0; i < 5; i++) {
-            const cloneb = beachChair.clone("beachChairClone" + i);
-            cloneb.setEnabled(true);
-            cloneb.position = new BABYLON.Vector3(
-                50,
-                1,
-                Math.random() * 90 - 50
-            );
+                const cloneb = beachChair.clone("beachChairClone" + i);
+                cloneb.setEnabled(false); // ✅ 这里默认也要隐藏
+                cloneb.position = new BABYLON.Vector3(50, 1, Math.random() * 90 - 50);
             }
             updateLoadingProgress();
         });
 
-        
-
         BABYLON.SceneLoader.ImportMeshAsync("", "./Assets/Environments/", "ship.glb", scene)
         .then((result) => {
             ship = result.meshes[0];
+            ship.setEnabled(false); // ✅ 默认隐藏
             ship.position = new BABYLON.Vector3(120, 0.8, 3);
             ship.scaling = new BABYLON.Vector3(10, 10, 10);
             ship.rotation = new BABYLON.Vector3(0, 90, 0);
-            ship.receiveShadows = true;
-
-            result.meshes.forEach((mesh) => {
-            mesh.receiveShadows = true;
-            });
             updateLoadingProgress();
         });
+
 
         //player
         const inputMap = {};
@@ -629,7 +673,7 @@
       const scene = createScene();
 
       // Initialize audio on user interaction (click)
-      canvas.addEventListener("click", () => {
+      window.addEventListener("click", () => {
         initAudio();
       });
 
@@ -646,6 +690,52 @@
         const menu = document.getElementById("menu");
         menu.style.display = (menu.style.display === "none" || menu.style.display === "") ? "block" : "none";
         });
+
+        document.getElementById("store-btn").addEventListener("click", () => {
+            const store = document.getElementById("store");
+            store.style.display = (store.style.display === "none" || store.style.display === "") ? "block" : "none";
+        });
+
+        document.getElementById("unlockShip").addEventListener("click", () => {
+            if (coinCount >= 8000) {
+                coinCount -= 8000;
+                coinUI.innerText = coinCount;
+
+                if (ship) ship.setEnabled(true);
+
+                const btn = document.getElementById("unlockShip");
+                btn.disabled = true;
+                btn.innerText = "Unlocked";
+                btn.style.backgroundColor = "gray";
+
+                isShipUnlocked = 1;
+                updateQuestProgress();
+            } else {
+                alert("Not enough coins!");
+            }
+        });
+
+        document.getElementById("unlockChair").addEventListener("click", () => {
+            if (coinCount >= 2000) {
+                coinCount -= 2000;
+                coinUI.innerText = coinCount;
+                // 启用所有 beach chair 克隆
+                const allMeshes = scene.meshes;
+                allMeshes.forEach(mesh => {
+                    if (mesh.name.startsWith("beachChairClone")) {
+                        mesh.setEnabled(true);
+                    }
+                });
+
+                const btn = document.getElementById("unlockChair");
+                btn.disabled = true;
+                btn.innerText = "Unlocked";
+                btn.style.backgroundColor = "gray";
+            } else {
+                alert("Not enough coins!");
+            }
+        });
+
 
         talkBtn.addEventListener("click", () => {
             dialogueText.textContent = "Hi, You can sell seashells and treasure chests to me for coins!";
@@ -719,6 +809,9 @@
         let quest6Completed = false;
         let quest6Progress = 0;
 
+        let quest7Completed = false;
+        let quest7Progress = 0;
+
         function updateQuestProgress() {
             //quest 1
             const totalCollected = treasureCollected + seashellCollected;
@@ -781,6 +874,16 @@
                 quest6Btn.disabled = false;
                 quest6Btn.style.backgroundColor = "green";
             }
+
+            //quest 7
+            quest7Progress = isShipUnlocked;
+            document.getElementById("quest7Progress").textContent = quest7Progress;
+
+            const quest7Btn = document.getElementById("quest7Btn");
+            if (quest7Progress >= 1 && !quest7Completed) {
+                quest7Btn.disabled = false;
+                quest7Btn.style.backgroundColor = "green";
+            }
         };
 
         function completeQuest(questNum, reward, conditionMet, completedFlagName) {
@@ -799,7 +902,7 @@
         document.getElementById("quest4Btn").onclick = () => completeQuest(4, 500, quest4Progress >= 1, "quest4Completed");
         document.getElementById("quest5Btn").onclick = () => completeQuest(5, 2000, quest5Progress >= 10, "quest5Completed");
         document.getElementById("quest6Btn").onclick = () => completeQuest(6, 5000, quest6Progress >= 10000, "quest6Completed");
-
+        document.getElementById("quest7Btn").onclick = () => completeQuest(7, 5000, quest7Progress >= 1, "quest7Completed");
     </script>
   </body>
 </html>
