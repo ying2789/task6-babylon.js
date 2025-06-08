@@ -393,7 +393,7 @@
 
         
 
-        BABYLON.SceneLoader.ImportMeshAsync("", "https://drive.google.com/file/d/1-NBxNv3soMF66FhMw3nNEGWCw8CMe0nf/view?usp=sharing", "ship.glb", scene)
+        BABYLON.SceneLoader.ImportMeshAsync("", "./Assets/Environments/", "ship.glb", scene)
         .then((result) => {
             ship = result.meshes[0];
             ship.position = new BABYLON.Vector3(150, 0.8, 3);
