@@ -396,8 +396,9 @@
         BABYLON.SceneLoader.ImportMeshAsync("", "./Assets/Environments/", "ship.glb", scene)
         .then((result) => {
             ship = result.meshes[0];
-            ship.position = new BABYLON.Vector3(150, 0.8, 3);
-            ship.scaling = new BABYLON.Vector3(2, 2, 2);
+            ship.position = new BABYLON.Vector3(120, 0.8, 3);
+            ship.scaling = new BABYLON.Vector3(10, 10, 10);
+            ship.rotation = new BABYLON.Vector3(0, 90, 0);
             ship.receiveShadows = true;
 
             result.meshes.forEach((mesh) => {
