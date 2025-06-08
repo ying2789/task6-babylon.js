@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Task 6 - Gamification (Babylon.js)</title>
+
+    <style>
+      html, body {
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+      }
+      #renderCanvas {
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+      }
+      #holder {
+        width: 100%;
+        height: 100%;
+        position: relative;
+      }
+      #menu {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 300px;
+        height: 100%;
+        background-color: rgba(0,0,0,0.8);
+        color: white;
+        padding: 20px;
+        display: none;
+        overflow-y: auto;
+        z-index: 100;
+      }
+      #menu h2 {
+        margin-top: 0;
+        border-bottom: 1px solid white;
+        padding-bottom: 10px;
+      }
+      #menu button.quest-btn {
+        margin-top: 5px;
+        padding: 5px 10px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .disabled-btn {
+        background-color: gray !important;
+        cursor: default;
+      }
+      .enabled-btn {
+        background-color: green;
+        color: white;
+      }
+      #menu-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 80px;
+        height: 80px;
+        background-color: linear-gradient(135deg, #023139, #8dc6f8);
+        color: white;
+        border: none;
+        font-weight: bold;
+        border-radius: 50%;
+        z-index: 200;
+        cursor: pointer;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      }
+      .interaction-btn {
+        position: absolute;
+        bottom: 50px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: none;
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+        border: none;
+        font-weight: bold;
+        font-size: 16px;
+        cursor: pointer;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      }
+      .hud-box {
+        position: absolute;
+        left: 10px;
+        background: rgba(255,255,255,0.85);
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+      }
+
+      #scoring-container{
+        width: 100%;
+        display: flex;              
+        align-items: flex-start;    
+        justify-content: flex-start;
+        gap: 10px;                  
+        position: absolute;
+        top: 10px;
+        left: 10px;
+      }
+
+      #treasureCount {
+        width: auto;
+        height: 60px;
+        background-color: transparent;
+        border-radius: 8px;
+        color: white;
+      }
+
+      #coinCount {
+        width: auto;
+        height: 60px;
+        background-color: transparent;
+        border-radius: 8px;
+        color: white;
+      }
+
+      #seashellCount {
+        width: auto;
+        height: 60px;
+        background-color: transparent;
+        border-radius: 8px;
+        color: white;
+      }
+
+      #dialogueBox {
+        position: absolute;
+        bottom: 100px;
+        left: 20px;
+        background: white;
+        padding: 10px;
+        display: none;
+        border: 2px solid #333;
+        border-radius: 6px;
+        z-index: 150;
+      }
+      #loading {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: black;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 999;
+        font-size: 24px;
+      }
+
+      .icon-img
+      {
+        width: 50px;
+        height:50px;
+      }
+    </style>
+
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+    <script src="https://cdn.babylonjs.com/materialsLibrary/babylon.waterMaterial.min.js"></script>
+  </head>
+
+  <body>
+    <div id="loading" style="position:absolute;top:0;left:0;width:100%;height:100%;background:black;color:white;display:flex;align-items:center;justify-content:center;z-index:1000;">
+        <div id="loadingText">Loading… 0%</div>
+    </div>
+
+    <div id = "holder">
+        <canvas id="renderCanvas" touch-action="none"></canvas>
+    </div>
+    <!-- touch-action="none" for best results from PEP -->
+    
+    <div>
+        <button id = "menu-btn">
+            <img src="Assets/Icons/quest.png" class="icon-img" />
+        </button>
+    </div>
+    <div id = "menu">
+        <h2>Quests</h2>
+        <div id="quest1">
+            Collect 1 item (<span id="quest1Progress">0</span>/1)
+            <button id="quest1Btn" disabled>Completed</button>
+        </div>
+        <div id="quest2">
+            Chat with a pirate (<span id="quest2Progress">0</span>/1)
+            <button id="quest2Btn" disabled>Completed</button>
+        </div>
+        <div id="quest3">
+            Sell a treasure chest (<span id="quest3Progress">0</span>/1)
+            <button id="quest3Btn" disabled>Completed</button>
+        </div>
+        <div id="quest4">
+            Sell a seashell (<span id="quest4Progress">0</span>/1)
+            <button id="quest4Btn" disabled>Completed</button>
+        </div>
+        <div id="quest5">
+            Collect 10 treasure chests (<span id="quest5Progress">0</span>/10)
+            <button id="quest5Btn" disabled>Completed</button>
+        </div>
+        <div id="quest6">
+            Earn 10000 coins (<span id="quest6Progress">0</span>/10000)
+            <button id="quest6Btn" disabled>Completed</button>
+        </div>
+    </div>
+
+    <div id="scoring-container">
+        <div class="icon-label">
+            <img src="Assets/Icons/coin.png" class="icon-img" />
+            <span id="coinCount">0</span>
+        </div>
+        <div class="icon-label">
+            <img src="Assets/Icons/treasure.png" class="icon-img" />
+            <span id="treasureCount">0</span>
+        </div>
+        <div class="icon-label">
+            <img src="Assets/Icons/seashell.png" class="icon-img" />
+            <span id="seashellCount">0</span>
+        </div>
+    </div>
+
+    <button id="talkBtn" class="interaction-btn" >CHAT</button>
+    <button id="pickupBtn" class="interaction-btn" >COLLECT</button>
+    <button id="collectSeashellBtn" class="interaction-btn">COLLECT</button>
+
+    <!-- 可选：对话框 -->
+    <div id="dialogueBox" style="position:absolute; bottom:100px; left:20px; background:white; padding:10px; display:none;">
+        <p id="dialogueText">...</p>
+        <button onclick="sellItems()">Sell</button>
+        <button onclick="closeDialogue()">Close</button>
+    </div>
+
+    <script>
+      const canvas = document.getElementById("renderCanvas");
+      const engine = new BABYLON.Engine(canvas, true);
+      let treasureCount = 0;
+      let seashellCount = 0;
+      let coinCount = 0;
+      let chatCount = 0;
+      let seashellCollected = 0;
+      let treasureCollected = 0;
+      let tsellCount = 0;
+      let ssellCount = 0;
+      let treasureUI = document.getElementById("treasureCount");
+      let seashellUI = document.getElementById("seashellCount");
+      let coinUI = document.getElementById("coinCount");
+
+      function initAudio() {
+        try {
+          // Create and configure the sound
+          const sound = new BABYLON.Sound(
+            "sound",
+            "./Sounds/wave.wav", // Replace with your audio file path
+            null,
+            {
+              loop: true,
+              autoplay: true
+            }
+          );
+        } catch (error) {
+          console.error("Audio initialization failed:", error);
+        }
+      }
+
+      const createScene = function () {
+        
+        const collectSeashellBtn = document.getElementById("collectSeashellBtn");
+
+        const scene = new BABYLON.Scene(engine);
+
+        const material = new BABYLON.StandardMaterial("name", scene);
+        const groundMat = new BABYLON.PBRMaterial("groundMat", scene);
+        groundMat.albedoTexture = new BABYLON.Texture("Textures/SandTexture.png"); // 颜色贴图
+        groundMat.ambientTexture =  new BABYLON.Texture("Textures/Ground054_2K-PNG_AmbientOcclusion.png");
+        groundMat.emissiveTexture = new BABYLON.Texture("Textures/Ground054_2K-NormalDX.png");
+        groundMat.roughness = 1; // 更高 = 更粗糙
+
+        //groundMat.diffuseColor = new BABYLON.Color3(0, 1, 0);
+        const boxMat = new BABYLON.StandardMaterial("boxMat");
+        boxMat.diffuseTexture = new BABYLON.Texture("https://www.babylonjs-playground.com/textures/floor.png");
+
+        let pirate = null;
+        let treasure = null;
+        const talkBtn = document.getElementById("talkBtn");
+        const pickupBtn = document.getElementById("pickupBtn");
+        const dialogueBox = document.getElementById("dialogueBox");
+        const dialogueText = document.getElementById("dialogueText");
+
+        //treasure and seashell
+
+        let treasureClones = [];
+
+        BABYLON.SceneLoader.ImportMeshAsync("", "./Assets/Environments/", "treasure_chest.glb", scene)
+        .then((result) => {
+            treasure = result.meshes[0];
+            treasure.scaling = new BABYLON.Vector3(0.02, 0.02, 0.02);
+            treasure.setEnabled(false); // template
+
+            for (let i = 0; i < 10; i++) {
+                const tclone = treasure.clone("treasureClone" + i);
+                tclone.setEnabled(true);
+                tclone.position = new BABYLON.Vector3(Math.random() * 90 - 45, 1.4, Math.random() * 90 - 45);
+                treasureClones.push(tclone);
+            }
+            updateLoadingProgress();
+        });
+
+        let seashellClones = [];
+
+        BABYLON.SceneLoader.ImportMeshAsync("", "./Assets/Environments/", "seashell.glb", scene)
+        .then((result) => {
+            seashell = result.meshes[0];
+            seashell.scaling = new BABYLON.Vector3(0.02, 0.02, 0.02);
+            seashell.rotation = new BABYLON.Vector3(-90, 0, 90);
+            seashell.setEnabled(false); // template
+
+            for (let i = 0; i < 20; i++) {
+                const sclone = seashell.clone("seashellClone" + i);
+                sclone.setEnabled(true);
+                sclone.position = new BABYLON.Vector3(Math.random() * 90 - 45, 1.5, Math.random() * 90 - 45);
+                seashellClones.push(sclone);
+            }
+            updateLoadingProgress();
+        });
+
+        // Import 3D Model
+        BABYLON.SceneLoader.ImportMeshAsync("", "./Assets/Environments/", "palm.glb", scene)
+        .then((result) => {
+            const palm = result.meshes[0];
+            palm.scaling = new BABYLON.Vector3(2, 2, 2);
+            palm.setEnabled(false); // template
+
+            for (let i = 0; i < 50; i++) {
+            const clone = palm.clone("palmClone" + i);
+            clone.setEnabled(true);
+            clone.position = new BABYLON.Vector3(
+                Math.random() * 90 - 50,
+                1.5,
+                Math.random() * 120 - 50
+            );
+            }
+            updateLoadingProgress();
+        });
+
+        BABYLON.SceneLoader.ImportMeshAsync("", "./Assets/Characters/", "pirate.glb", scene)
+        .then((result) => {
+            pirate = result.meshes[0];
+            pirate.position = new BABYLON.Vector3(70, 1.5, 3);
+            pirate.rotation = new BABYLON.Vector3(0, 90, 0);
+            
+            let direction = 1;
+            scene.onBeforeRenderObservable.add(() => {
+                if (pirate) {
+                pirate.position.y += 0.005 * direction;
+                if (pirate.position.y > 2 || pirate.position.y < 1.5) {
+                    direction *= -1;
+                }
+                }
+            });
+
+            updateLoadingProgress();
+        });
+
+        BABYLON.SceneLoader.ImportMeshAsync("", "./Assets/Environments/", "beach_chair.glb", scene)
+        .then((result) => {
+            const beachChair = result.meshes[0];
+            beachChair.scaling = new BABYLON.Vector3(2, 2, 2);
+            beachChair.rotation = new BABYLON.Vector3(0, 90, 0);
+            beachChair.setEnabled(false); // template
+
+            for (let i = 0; i < 5; i++) {
+            const cloneb = beachChair.clone("beachChairClone" + i);
+            cloneb.setEnabled(true);
+            cloneb.position = new BABYLON.Vector3(
+                50,
+                1,
+                Math.random() * 90 - 50
+            );
+            }
+            updateLoadingProgress();
+        });
+
+        
+
+        BABYLON.SceneLoader.ImportMeshAsync("", "./Assets/Environments/", "ship.glb", scene)
+        .then((result) => {
+            ship = result.meshes[0];
+            ship.position = new BABYLON.Vector3(150, 0.8, 3);
+            ship.scaling = new BABYLON.Vector3(2, 2, 2);
+            ship.receiveShadows = true;
+
+            result.meshes.forEach((mesh) => {
+            mesh.receiveShadows = true;
+            });
+            updateLoadingProgress();
+        });
+
+        //player
+        const inputMap = {};
+        scene.actionManager = new BABYLON.ActionManager(scene);
+        scene.actionManager.registerAction(
+        new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyDownTrigger, evt => inputMap[evt.sourceEvent.key] = evt.sourceEvent.type === "keydown")
+        );
+        scene.actionManager.registerAction(
+        new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyUpTrigger, evt => inputMap[evt.sourceEvent.key] = evt.sourceEvent.type === "keydown")
+        );
+
+        let player = null;
+        BABYLON.SceneLoader.ImportMeshAsync("", "./Assets/Characters/", "walkingSailor.glb", scene)
+        .then((result) => {
+            player = result.meshes[0];
+            player.position = new BABYLON.Vector3(60, 1.55, 30);
+            player.scaling = new BABYLON.Vector3(2, 2, 2);
+            player.rotation = new BABYLON.Vector3(0, 0, 0); // avoid facing camera
+
+            walkAnimGroup = result.animationGroups[0]; // save animation
+            walkAnimGroup.stop();
+            updateLoadingProgress();
+        });
+
+        let isMoving = false;
+
+        scene.onBeforeRenderObservable.add(() => {
+            if (!player || !walkAnimGroup) return;
+
+            const moveSpeed = 0.03;
+            const rotationSpeed = 0.01;
+            let moving = false;
+
+            const forward = new BABYLON.Vector3(
+                Math.sin(player.rotation.y),
+                0,
+                Math.cos(player.rotation.y)
+            );
+
+            if (inputMap["a"]) {
+                player.rotation.y -= rotationSpeed;
+                
+            // turn left
+            }
+            if (inputMap["d"]) {
+                player.rotation.y += rotationSpeed;
+
+            }
+
+            if (inputMap["w"]) {
+                player.position.addInPlace(forward.scale(moveSpeed)); // forward
+                moving = true;
+            }
+            if (inputMap["s"]) {
+                player.position.addInPlace(forward.scale(-moveSpeed)); // backward
+                moving = true;
+            }
+
+            // play animation
+            if (moving && !isMoving) {
+                walkAnimGroup.start(true, 1.0, walkAnimGroup.from, walkAnimGroup.from + 40); // only play 40
+                isMoving = true;
+                
+            } else if (!moving && isMoving) {
+                walkAnimGroup.stop();
+                isMoving = false;
+            }
+
+            // limit
+            const sandBoundary = 73;
+            if (player.position.x > sandBoundary) player.position.x = sandBoundary;
+            if (player.position.x < -sandBoundary) player.position.x = -sandBoundary;
+            if (player.position.z > sandBoundary) player.position.z = sandBoundary;
+            if (player.position.z < -sandBoundary) player.position.z = -sandBoundary;
+
+            //talk to npc
+            if (player && pirate) {
+                const pirateDistance = BABYLON.Vector3.Distance(player.position, pirate.position);
+                talkBtn.style.display = pirateDistance < 5 ? "block" : "none";
+            }
+
+            //collect treasure
+            let nearestTreasure = null;
+            let minDistance = 5;
+
+            treasureClones.forEach((t) => {
+                if (t.isEnabled()) {
+                    const dist = BABYLON.Vector3.Distance(player.position, t.position);
+                    if (dist < minDistance) {
+                        nearestTreasure = t;
+                        minDistance = dist;
+                    }
+                }
+            });
+
+            if (nearestTreasure) {
+                pickupBtn.style.display = "block";
+
+                pickupBtn.onclick = () => {
+                    nearestTreasure.setEnabled(false); // hide
+                    treasureCount++;
+                    treasureUI.innerText = treasureCount;
+                    pickupBtn.style.display = "none";
+                    treasureCollected++;
+                    updateQuestProgress();
+                };
+            } else {
+                pickupBtn.style.display = "none";
+            }
+
+            //collect seashell
+            let nearestSeashell = null;
+            let minShellDist = 5;
+
+            seashellClones.forEach(s => {
+            if (s.isEnabled()) {
+                const dist = BABYLON.Vector3.Distance(player.position, s.position);
+                if (dist < minShellDist) {
+                    nearestSeashell = s;
+                    minShellDist = dist;
+                }
+            }
+            });
+
+            if (nearestSeashell) {
+                collectSeashellBtn.style.display = "block";
+                collectSeashellBtn.onclick = () => {
+                    nearestSeashell.setEnabled(false);
+                    seashellCount++;
+                    seashellUI.innerText = seashellCount;
+                    collectSeashellBtn.style.display = "none";
+                    seashellCollected++;
+                    updateQuestProgress();
+            };
+            } else {
+                collectSeashellBtn.style.display = "none";
+            }
+
+        });
+
+        // Skybox
+        const skybox = BABYLON.MeshBuilder.CreateBox("skyBox", { size: 1000 }, scene);
+        const skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
+        skyboxMaterial.backFaceCulling = false;
+        skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(
+          "https://playground.babylonjs.com/textures/skybox", // Use a valid cube texture
+          scene,
+          ["_px.jpg", "_py.jpg", "_pz.jpg", "_nx.jpg", "_ny.jpg", "_nz.jpg"]
+        );
+        skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+        skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+        skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+        skybox.material = skyboxMaterial;
+        skybox.infiniteDistance = true; // Ensure skybox moves with camera
+
+
+        //ocean
+        const waterMesh = BABYLON.MeshBuilder.CreateGround("waterMesh", { width: 1000, height: 1000 }, scene);
+        const waterMaterial = new BABYLON.WaterMaterial("waterMat", scene, new BABYLON.Vector2(512, 512));
+        waterMaterial.backFaceCulling = true;
+        waterMaterial.bumpTexture = new BABYLON.Texture("https://assets.babylonjs.com/environments/waterbump.png", scene);
+        waterMaterial.windForce = -5;
+        waterMaterial.waveHeight = 0.2;
+        waterMaterial.bumpHeight = 0.1;
+        waterMaterial.waveLength = 0.1;
+        waterMaterial.colorBlendFactor = 0;
+        waterMaterial.windDirection = new BABYLON.Vector2(1, 1);
+        waterMaterial.waterColor = new BABYLON.Color3(0, 0.3, 0.6);
+        waterMaterial.addToRenderList(skybox); // render
+        waterMesh.material = waterMaterial;
+
+        //sand
+        const ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 150, height: 150 });
+        ground.material = groundMat; //Place the material property of the ground
+        ground.position.y = 1.5;
+
+        //camera
+        const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2.5, 15, new BABYLON.Vector3(0, 0, 0));
+        camera.attachControl(canvas, true);
+        camera.upperBetaLimit = Math.PI / 2.2;
+        camera.lowerRadiusLimit = 10;    // min
+        camera.upperRadiusLimit = 30;   // max
+        scene.onBeforeRenderObservable.add(() => {
+            if (player) {
+                camera.target = player.position.clone(); // mouse control and follow player
+            }
+        });
+
+        //light
+        const sun = new BABYLON.DirectionalLight("sun", new BABYLON.Vector3(-1, -2, 1), scene);
+        sun.position = new BABYLON.Vector3(0, 50, 0);
+        sun.intensity = 2.0;
+        sun.diffuse = new BABYLON.Color3(1, 0.95, 0.8);  
+        sun.specular = new BABYLON.Color3(1, 1, 1);
+
+        const sun2 = new BABYLON.DirectionalLight("sun2", new BABYLON.Vector3(1, -2, -1), scene);
+        sun2.position = new BABYLON.Vector3(0, 100, 0);
+        sun2.intensity = 3.0;
+        sun2.diffuse = new BABYLON.Color3(1, 0.95, 0.8);  
+        sun2.specular = new BABYLON.Color3(1, 1, 1);
+
+        //shadow
+        const shadowGenerator = new BABYLON.ShadowGenerator(2048, sun);
+        shadowGenerator.useExponentialShadowMap = true;
+        //shadowGenerator.addShadowCaster(player); 
+        ground.receiveShadows = true;
+        
+        //user interaction
+        pickupBtn.onclick = function () {
+            if (treasure && treasure.isEnabled()) {
+                treasure.setEnabled(false); // hide
+                treasureCount++;
+                treasureUI.innerText = treasureCount;
+                pickupBtn.style.display = "none"; // hide
+            }
+        };
+
+        return scene;
+      };
+
+      const scene = createScene();
+
+      // Initialize audio on user interaction (click)
+      canvas.addEventListener("click", () => {
+        initAudio();
+      });
+
+      engine.runRenderLoop(function () {
+        scene.render();
+      });
+
+      window.addEventListener("resize", function () {
+        engine.resize();
+      });
+
+    //UI CONTROLLER
+      document.getElementById("menu-btn").addEventListener("click", () => {
+        const menu = document.getElementById("menu");
+        menu.style.display = (menu.style.display === "none" || menu.style.display === "") ? "block" : "none";
+        });
+
+        talkBtn.addEventListener("click", () => {
+            dialogueText.textContent = "Hi, You can sell seashells and treasure chests to me for coins!";
+            dialogueBox.style.display = "block";
+            chatCount ++;
+            updateQuestProgress();
+        });
+
+        function closeDialogue() {
+        dialogueBox.style.display = "none";
+        }
+
+        pickupBtn.addEventListener("click", () => {
+        if (treasure) {
+            treasure.setEnabled(false); // collect
+            pickupBtn.style.display = "none";
+        }
+        });
+
+        function sellItems() {
+            let coinsGained = 0;
+            if (treasureCount > 0) {
+                coinsGained += treasureCount * 1000;
+                tsellCount = treasureCount;
+                treasureCount = 0;
+                document.getElementById("treasureCount").innerText = treasureCount;
+            }
+            else
+            {
+                dialogueText.textContent = "No treasure? Come back when your pockets jingle with loot!";
+            }
+            if (seashellCount > 0) {
+                coinsGained += seashellCount * 20;
+                ssellCount = seashellCount;
+                seashellCount = 0;
+                seashellUI.innerText = seashellCount;
+            }
+            coinCount += coinsGained;
+            coinUI.innerText = coinCount;
+            updateQuestProgress();
+        }
+
+        let totalAssets = 7; // （pirate, palm, ship, chair, treasure+seashell）
+        let loadedAssets = 0;
+
+        function updateLoadingProgress() {
+            loadedAssets++;
+            const percent = Math.floor((loadedAssets / totalAssets) * 100);
+            document.getElementById("loadingText").textContent = `Loading… ${percent}%`;
+            if (loadedAssets >= totalAssets) {
+                document.getElementById("loading").style.display = "none";
+            }
+        }
+
+        //Quest manager
+        let quest1Completed = false;
+        let quest1Progress = 0;
+
+        let quest2Completed = false;
+        let quest2Progress = 0;
+
+        let quest3Completed = false;
+        let quest3Progress = 0;
+
+        let quest4Completed = false;
+        let quest4Progress = 0;
+
+        let quest5Completed = false;
+        let quest5Progress = 0;
+
+        let quest6Completed = false;
+        let quest6Progress = 0;
+
+        function updateQuestProgress() {
+            //quest 1
+            const totalCollected = treasureCollected + seashellCollected;
+            quest1Progress = totalCollected;
+            document.getElementById("quest1Progress").textContent = quest1Progress;
+
+            const quest1Btn = document.getElementById("quest1Btn");
+            if (quest1Progress >= 1 && !quest1Completed) {
+                quest1Btn.disabled = false;
+                quest1Btn.style.backgroundColor = "green";
+            }
+
+            //quest 2
+            const totalChat = chatCount;
+            quest2Progress = totalChat;
+            document.getElementById("quest2Progress").textContent = quest2Progress;
+
+            const quest2Btn = document.getElementById("quest2Btn");
+            if (quest2Progress >= 1 && !quest2Completed) {
+                quest2Btn.disabled = false;
+                quest2Btn.style.backgroundColor = "green";
+            }
+
+            //quest 3
+            quest3Progress = tsellCount;
+            document.getElementById("quest3Progress").textContent = quest3Progress;
+
+            const quest3Btn = document.getElementById("quest3Btn");
+            if (quest3Progress >= 1 && !quest3Completed) {
+                quest3Btn.disabled = false;
+                quest3Btn.style.backgroundColor = "green";
+            }
+
+            //quest 4
+            quest4Progress = ssellCount;
+            document.getElementById("quest4Progress").textContent = quest4Progress;
+
+            const quest4Btn = document.getElementById("quest4Btn");
+            if (quest4Progress >= 1 && !quest4Completed) {
+                quest4Btn.disabled = false;
+                quest4Btn.style.backgroundColor = "green";
+            }
+
+            //quest 5
+            quest5Progress = treasureCollected;
+            document.getElementById("quest5Progress").textContent = quest5Progress;
+
+            const quest5Btn = document.getElementById("quest5Btn");
+            if (quest5Progress >= 10 && !quest5Completed) {
+                quest5Btn.disabled = false;
+                quest5Btn.style.backgroundColor = "green";
+            }
+
+            //quest 6
+            quest6Progress = coinCount;
+            document.getElementById("quest6Progress").textContent = quest6Progress;
+
+            const quest6Btn = document.getElementById("quest6Btn");
+            if (quest6Progress >= 10000 && !quest6Completed) {
+                quest6Btn.disabled = false;
+                quest6Btn.style.backgroundColor = "green";
+            }
+        };
+
+        function completeQuest(questNum, reward, conditionMet, completedFlagName) {
+            if (!window[completedFlagName] && conditionMet) {
+                coinCount += reward;
+                coinUI.textContent = `${coinCount}`;
+                window[completedFlagName] = true;
+                alert(`Quest ${questNum} Complete! +${reward} coins`);
+                const btn = document.getElementById(`quest${questNum}Btn`);
+            }
+        }
+
+        document.getElementById("quest1Btn").onclick = () => completeQuest(1, 1000, quest1Progress >= 1, "quest1Completed");
+        document.getElementById("quest2Btn").onclick = () => completeQuest(2, 1000, quest2Progress >= 1, "quest2Completed");
+        document.getElementById("quest3Btn").onclick = () => completeQuest(3, 1000, quest3Progress >= 1, "quest3Completed");
+        document.getElementById("quest4Btn").onclick = () => completeQuest(4, 500, quest4Progress >= 1, "quest4Completed");
+        document.getElementById("quest5Btn").onclick = () => completeQuest(5, 2000, quest5Progress >= 10, "quest5Completed");
+        document.getElementById("quest6Btn").onclick = () => completeQuest(6, 5000, quest6Progress >= 10000, "quest6Completed");
+
+    </script>
+  </body>
+</html>
