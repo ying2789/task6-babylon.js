@@ -336,7 +336,7 @@
         groundMat.albedoTexture = new BABYLON.Texture("Textures/SandTexture.png"); // 颜色贴图
         groundMat.ambientTexture =  new BABYLON.Texture("Textures/Ground054_2K-PNG_AmbientOcclusion.png");
         groundMat.emissiveTexture = new BABYLON.Texture("Textures/Ground054_2K-NormalDX.png");
-        groundMat.roughness = 1; 
+        groundMat.roughness = 1; // 更高 = 更粗糙
 
         //groundMat.diffuseColor = new BABYLON.Color3(0, 1, 0);
         const boxMat = new BABYLON.StandardMaterial("boxMat");
@@ -455,7 +455,7 @@
             house.position = new BABYLON.Vector3(20, 1, 60);
             house.scaling = new BABYLON.Vector3(3, 3, 3);
             //house.rotation = new BABYLON.Vector3(0, 90, 0);
-            //updateLoadingProgress();
+            updateLoadingProgress();
         });
 
         BABYLON.SceneLoader.ImportMeshAsync("", "./Assets/Environments/", "dock.glb", scene)
@@ -463,7 +463,7 @@
             dock = result.meshes[0];
             dock.position = new BABYLON.Vector3(88, 0.1, 0);
             dock.scaling = new BABYLON.Vector3(0.1, 0.1, 0.1);
-            //updateLoadingProgress();
+            updateLoadingProgress();
         });
 
         BABYLON.SceneLoader.ImportMeshAsync("", "./Assets/Environments/", "fishing_hut.glb", scene)
@@ -472,7 +472,7 @@
             hut.position = new BABYLON.Vector3(70, 1, 50);
             hut.scaling = new BABYLON.Vector3(3, 3, 3);
             hut.rotation = new BABYLON.Vector3(0, 180, 0);
-            //updateLoadingProgress();
+            updateLoadingProgress();
         });
 
         BABYLON.SceneLoader.ImportMeshAsync("", "./Assets/Environments/", "house2.glb", scene)
@@ -493,7 +493,7 @@
                 Math.random() * 120 - 50
             );
             }
-            //updateLoadingProgress();
+            updateLoadingProgress();
         });
 
         //player
@@ -823,7 +823,7 @@
             updateQuestProgress();
         }
 
-        let totalAssets = 7; // （pirate, palm, ship, chair, treasure+seashell）
+        let totalAssets = 11; // （pirate, palm, ship, chair, treasure+seashell）
         let loadedAssets = 0;
 
         function updateLoadingProgress() {
