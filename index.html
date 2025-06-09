@@ -512,7 +512,7 @@
             player = result.meshes[0];
             player.position = new BABYLON.Vector3(60, 1.55, 60);
             player.scaling = new BABYLON.Vector3(2, 2, 2);
-            player.rotation = new BABYLON.Vector3(0, 0, 0); // avoid facing camera
+            player.rotation = new BABYLON.Vector3(0, -90, 0); // avoid facing camera
 
             walkAnimGroup = result.animationGroups[0]; // save animation
             walkAnimGroup.stop();
@@ -672,7 +672,7 @@
         ground.position.y = 1.5;
 
         //camera
-        const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2.5, 15, new BABYLON.Vector3(0, 0, 0));
+        const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2.5, 15, new BABYLON.Vector3(180, 45, 0));
         camera.attachControl(canvas, true);
         camera.upperBetaLimit = Math.PI / 2.2;
         camera.lowerRadiusLimit = 10;    // min
