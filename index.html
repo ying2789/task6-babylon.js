@@ -291,7 +291,6 @@
     <button id="pickupBtn" class="interaction-btn" >COLLECT</button>
     <button id="collectSeashellBtn" class="interaction-btn">COLLECT</button>
 
-    <!-- 可选：对话框 -->
     <div id="dialogueBox" style="position:absolute; bottom:100px; left:20px; background:white; padding:10px; display:none;">
         <p id="dialogueText">...</p>
         <button onclick="sellItems()">Sell</button>
@@ -337,7 +336,7 @@
         groundMat.albedoTexture = new BABYLON.Texture("Textures/SandTexture.png"); // 颜色贴图
         groundMat.ambientTexture =  new BABYLON.Texture("Textures/Ground054_2K-PNG_AmbientOcclusion.png");
         groundMat.emissiveTexture = new BABYLON.Texture("Textures/Ground054_2K-NormalDX.png");
-        groundMat.roughness = 1; // 更高 = 更粗糙
+        groundMat.roughness = 1; 
 
         //groundMat.diffuseColor = new BABYLON.Color3(0, 1, 0);
         const boxMat = new BABYLON.StandardMaterial("boxMat");
@@ -360,7 +359,7 @@
             treasure.scaling = new BABYLON.Vector3(0.02, 0.02, 0.02);
             treasure.setEnabled(false); // template
 
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < 20; i++) {
                 const tclone = treasure.clone("treasureClone" + i);
                 tclone.setEnabled(true);
                 tclone.position = new BABYLON.Vector3(Math.random() * 90 - 45, 1.4, Math.random() * 90 - 45);
@@ -430,11 +429,11 @@
             const beachChair = result.meshes[0];
             beachChair.scaling = new BABYLON.Vector3(2, 2, 2);
             beachChair.rotation = new BABYLON.Vector3(0, 90, 0);
-            beachChair.setEnabled(false); // ✅ 已隐藏
+            beachChair.setEnabled(false); 
 
             for (let i = 0; i < 5; i++) {
                 const cloneb = beachChair.clone("beachChairClone" + i);
-                cloneb.setEnabled(false); // ✅ 这里默认也要隐藏
+                cloneb.setEnabled(false); 
                 cloneb.position = new BABYLON.Vector3(50, 1, Math.random() * 90 - 50);
             }
             updateLoadingProgress();
@@ -443,13 +442,59 @@
         BABYLON.SceneLoader.ImportMeshAsync("", "./Assets/Environments/", "ship.glb", scene)
         .then((result) => {
             ship = result.meshes[0];
-            ship.setEnabled(false); // ✅ 默认隐藏
+            ship.setEnabled(false); 
             ship.position = new BABYLON.Vector3(120, 0.8, 3);
             ship.scaling = new BABYLON.Vector3(10, 10, 10);
             ship.rotation = new BABYLON.Vector3(0, 90, 0);
             updateLoadingProgress();
         });
 
+        BABYLON.SceneLoader.ImportMeshAsync("", "./Assets/Environments/", "house1.glb", scene)
+        .then((result) => {
+            house = result.meshes[0];
+            house.position = new BABYLON.Vector3(20, 1, 60);
+            house.scaling = new BABYLON.Vector3(3, 3, 3);
+            //house.rotation = new BABYLON.Vector3(0, 90, 0);
+            //updateLoadingProgress();
+        });
+
+        BABYLON.SceneLoader.ImportMeshAsync("", "./Assets/Environments/", "dock.glb", scene)
+        .then((result) => {
+            dock = result.meshes[0];
+            dock.position = new BABYLON.Vector3(88, 0.1, 0);
+            dock.scaling = new BABYLON.Vector3(0.1, 0.1, 0.1);
+            //updateLoadingProgress();
+        });
+
+        BABYLON.SceneLoader.ImportMeshAsync("", "./Assets/Environments/", "fishing_hut.glb", scene)
+        .then((result) => {
+            hut = result.meshes[0];
+            hut.position = new BABYLON.Vector3(70, 1, 50);
+            hut.scaling = new BABYLON.Vector3(3, 3, 3);
+            hut.rotation = new BABYLON.Vector3(0, 180, 0);
+            //updateLoadingProgress();
+        });
+
+        BABYLON.SceneLoader.ImportMeshAsync("", "./Assets/Environments/", "house2.glb", scene)
+        .then((result) => {
+            house2 = result.meshes[0];
+            house2.position = new BABYLON.Vector3(0, 1, 0);
+            house2.scaling = new BABYLON.Vector3(3, 3, 3);
+            //house2.rotation = new BABYLON.Vector3(0, 90, 0);
+
+            house2.setEnabled(false); // template
+
+            for (let i = 0; i < 5; i++) {
+            const cloneh = house2.clone("houseClone" + i);
+            cloneh.setEnabled(true);
+            cloneh.position = new BABYLON.Vector3(
+                i * 25 - 50,
+                1,
+                Math.random() * 120 - 50
+            );
+            }
+            //updateLoadingProgress();
+        });
 
         //player
         const inputMap = {};
@@ -465,7 +510,7 @@
         BABYLON.SceneLoader.ImportMeshAsync("", "./Assets/Characters/", "walkingSailor.glb", scene)
         .then((result) => {
             player = result.meshes[0];
-            player.position = new BABYLON.Vector3(60, 1.55, 30);
+            player.position = new BABYLON.Vector3(60, 1.55, 60);
             player.scaling = new BABYLON.Vector3(2, 2, 2);
             player.rotation = new BABYLON.Vector3(0, 0, 0); // avoid facing camera
 
